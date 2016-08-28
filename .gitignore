@@ -22,5 +22,9 @@ _testmain.go
 *.exe
 *.test
 *.prof
-.idea/*
-FingerPlay.iml
+
+# idea ignore
+.idea/
+*.ipr
+*.iml
+*.iws
