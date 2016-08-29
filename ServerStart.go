@@ -1,7 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"FingerPlay/httpServer"
+)
 
 func main() {
-	fmt.Printf("FingerPlay")
+	fmt.Println("服务已启动")
+	httpServer.HttpServerStart()
 }
