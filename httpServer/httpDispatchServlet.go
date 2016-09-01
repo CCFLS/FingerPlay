@@ -1,7 +1,6 @@
 package httpServer
 
 import "net/http"
-
 //当前加入战局的人数。猜拳游戏,同一局最多两人
 var Player map[string]string = make(map[string]string)
 //观战的人。人数无限制
