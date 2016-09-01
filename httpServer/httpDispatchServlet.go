@@ -19,5 +19,6 @@ func HttpServerStart()  {
 	http.HandleFunc("/initUserStatus",initUserStatus)
 	http.HandleFunc("/submitAction",submitAction)
 	http.HandleFunc("/checkResult",checkResult)
+	http.HandleFunc("/UserQuit",userQuit)
 	http.ListenAndServe("localhost:8080",nil)
 }

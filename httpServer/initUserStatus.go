@@ -32,6 +32,7 @@ func initUserStatus(w http.ResponseWriter, req *http.Request)  {
 	userName := initParams.UserName
 	Type := initParams.Type
 	uuid := uuid.Rand().Hex()
+	lock.Lock()
 	if Type =="0"{
 		size := len(Player) //查看战局人数
 		fmt.Println("当前战局人数战局人数:"+strconv.Itoa(len(Player)))
@@ -42,7 +43,6 @@ func initUserStatus(w http.ResponseWriter, req *http.Request)  {
 			}
 		}
 	}
-	lock.Lock()
 	jsonStr := generatorUser(userName,uuid,Type)
 	lock.Unlock()
 	io.WriteString(w,string(jsonStr))
