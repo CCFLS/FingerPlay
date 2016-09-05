@@ -10,6 +10,9 @@ import (
 func main() {
 	fmt.Println("服务已启动")
 	httpServer.HttpServerStart()
+}
+
+func testredis(){
 	redispool.Init()
 	rc := redispool.RedisClient.Get()
 	defer rc.Close()
@@ -23,13 +26,7 @@ func main() {
 		fmt.Println("fail")
 	}
 	fmt.Println(value)
-	l,_ := redis.Values(rc.Do("KEYS","*"))
-	for _,value :=range l{
-		b,_:=value.([]byte)
-		fmt.Println(byteString(b))
-	}
 }
-
 func byteString(p []byte) string {
 	for i := 0; i < len(p); i++ {
 		if p[i] == 0 {
