@@ -3,6 +3,10 @@ package httpServer
 import (
 	"net/http"
 	"encoding/json"
+	"FingerPlay/redispool"
+	"github.com/garyburd/redigo/redis"
+	"strings"
+	"io"
 )
 
 type checkTheOtherSideParams struct {
@@ -12,28 +16,25 @@ type checkTheOtherSideParams struct {
 type hasOtherReturn struct {
 	Role string `json:"role"`
 	UserName string `json:"userName"`
-	UserToken string `json:"userToken"`
 	UserHP string `json:"userHP,omitempty"`
 }
 
 func checkTheOtherSide(w http.ResponseWriter, req *http.Request)  {
+	rc := redispool.RedisClient.Get()
+	defer rc.Close()
 	req.ParseForm()
 	parms := req.Form["params"][0]
 	otherSideParams := &checkTheOtherSideParams{}
 	json.Unmarshal([]byte(parms),&otherSideParams)
 	userName := otherSideParams.UserName
-	hasOther := false
-	for key,_:=range Player{
-		if key != userName{
-			hasOther=true
-			userName=key
+	l,_ := redis.Values(rc.Do("KEYS","*"))
+	initUserJson := ""
+	for _,value :=range l{
+		if strings.Contains(value,"-player") {
+			if userName+"_player" != value{
+				initUserJson,_ = rc.Do("GET",value)
+			}
 		}
 	}
-	if hasOther{
-		initReturn := &initUserReturn{}
-		initReturn.UserName=userName
-		initReturn.UserToken=Player[userName]
-		initReturn.Role="0"
-		initReturn.UserHP="10"
-	}
+	io.WriteString(w,"{\"error\":\"OK\",\"msg\":\"0\",\"data\":"+initUserJson+"}")
 }

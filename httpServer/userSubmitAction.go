@@ -4,32 +4,38 @@ import (
 	"io"
 	"encoding/json"
 	"net/http"
+	"FingerPlay/redispool"
+	"strings"
+	"github.com/garyburd/redigo/redis"
 )
 
 type submitActionParams struct {
-	UserToken string
+	UserName string
 	Action string
 }
 
 func submitAction(w http.ResponseWriter, req *http.Request){
+	rc := redispool.RedisClient.Get()
+	defer rc.Close()
 	req.ParseForm()
 	parms := req.Form["params"][0]
 	submitActionParams := &submitActionParams{}
 	json.Unmarshal([]byte(parms),&submitActionParams)
-	userToken := submitActionParams.UserToken
+	userName := submitActionParams.UserName
 	action := submitActionParams.Action
 	returnJson := &ReturnJson{}
 	//先判断是不是战局内的人
 	isPlayer := false
-	for _,value := range Player{
-		if value==userToken{
-			isPlayer=true
+	l,_ := redis.Values(rc.Do("KEYS","*"))
+	for _,value :=range l{
+		if userName+"player" == value{
+			isPlayer = false
 			break
 		}
 	}
 	if isPlayer{
 		//将出拳放入map,如果已经出拳且未出结果时,将丢弃重复无用的出拳
-		ActionMap[userToken]=action
+		ActionMap[userName]=action
 		returnJson.Msg="请求成功,已出拳,请等待结果"
 		returnJson.Error="0"
 	}else {

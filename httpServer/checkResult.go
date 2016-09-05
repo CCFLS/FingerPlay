@@ -7,10 +7,12 @@ import (
 	"strconv"
 	"container/list"
 	"io"
+	"github.com/garyburd/redigo/redis"
+	"FingerPlay/redispool"
 )
 
 type checkResultParams struct {
-	UserToken string `json:"userToken"`
+	UserName string `json:"userToken"`
 }
 
 type CheckResultData struct {
@@ -20,22 +22,25 @@ type CheckResultData struct {
 }
 
 type userInfo struct {
-	UserToken string `json:"userToken"`
+	UserName string `json:"userToken"`
 	Winner string `json:"winner"`
 }
 var status string = "0"
 
 func checkResult(w http.ResponseWriter, req *http.Request)  {
+	rc := redispool.RedisClient.Get()
+	defer rc.Close()
 	req.ParseForm()
 	parms := req.Form["params"][0]
 	checkResultParams := &checkResultParams{}
 	json.Unmarshal([]byte(parms),&checkResultParams)
-	userToken := checkResultParams.UserToken
+	UserName := checkResultParams.UserName
 	//先判断是不是战局内的人
 	isPlayer := false
-	for _,value := range Player{
-		if value==userToken{
-			isPlayer=true
+	l,_ := redis.Values(rc.Do("KEYS","*"))
+	for _,value :=range l{
+		if UserName+"player" == value{
+			isPlayer = false
 			break
 		}
 	}
@@ -98,30 +103,30 @@ func calResult() *list.List{
 	if baseAction == 0 {
 		if action == 0{
 			userInfo1 := &userInfo{}
-			userInfo1.UserToken=baseToken
+			userInfo1.UserName=baseToken
 			userInfo1.Winner="T"
 			userInfo2 := &userInfo{}
-			userInfo2.UserToken=token
+			userInfo2.UserName=token
 			userInfo2.Winner="T"
 			l.PushBack(userInfo1)
 			l.PushBack(userInfo2)
 		}
 		if action == 1{
 			userInfo1 := &userInfo{}
-			userInfo1.UserToken=baseToken
+			userInfo1.UserName=baseToken
 			userInfo1.Winner="F"
 			userInfo2 := &userInfo{}
-			userInfo2.UserToken=token
+			userInfo2.UserName=token
 			userInfo2.Winner="T"
 			l.PushBack(userInfo1)
 			l.PushBack(userInfo2)
 		}
 		if action == 2{
 			userInfo1 := &userInfo{}
-			userInfo1.UserToken=baseToken
+			userInfo1.UserName=baseToken
 			userInfo1.Winner="T"
 			userInfo2 := &userInfo{}
-			userInfo2.UserToken=token
+			userInfo2.UserName=token
 			userInfo2.Winner="F"
 			l.PushBack(userInfo1)
 			l.PushBack(userInfo2)
@@ -129,30 +134,30 @@ func calResult() *list.List{
 	}else {
 		if baseAction < action {
 			userInfo1 := &userInfo{}
-			userInfo1.UserToken=baseToken
+			userInfo1.UserName=baseToken
 			userInfo1.Winner="F"
 			userInfo2 := &userInfo{}
-			userInfo2.UserToken=token
+			userInfo2.UserName=token
 			userInfo2.Winner="T"
 			l.PushBack(userInfo1)
 			l.PushBack(userInfo2)
 		}
 		if baseAction > action{
 			userInfo1 := &userInfo{}
-			userInfo1.UserToken=baseToken
+			userInfo1.UserName=baseToken
 			userInfo1.Winner="T"
 			userInfo2 := &userInfo{}
-			userInfo2.UserToken=token
+			userInfo2.UserName=token
 			userInfo2.Winner="F"
 			l.PushBack(userInfo1)
 			l.PushBack(userInfo2)
 		}
 		if baseAction == action{
 			userInfo1 := &userInfo{}
-			userInfo1.UserToken=baseToken
+			userInfo1.UserName=baseToken
 			userInfo1.Winner="T"
 			userInfo2 := &userInfo{}
-			userInfo2.UserToken=token
+			userInfo2.UserName=token
 			userInfo2.Winner="T"
 			l.PushBack(userInfo1)
 			l.PushBack(userInfo2)

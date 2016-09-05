@@ -4,28 +4,25 @@ import (
 	"net/http"
 	"encoding/json"
 	"io"
+	"strings"
+	"FingerPlay/redispool"
+	"github.com/garyburd/redigo/redis"
 )
 
 type userQuitParams struct {
-	UserToken string
+	UserName string
 }
 
 func userQuit(w http.ResponseWriter, req *http.Request)  {
+	rc := redispool.RedisClient.Get()
+	defer rc.Close()
 	req.ParseForm()
 	parms := req.Form["params"][0]
 	userQuitParams := &userQuitParams{}
 	json.Unmarshal([]byte(parms),&userQuitParams)
-	userToken := userQuitParams.UserToken
-	for key,value:=range Player{
-		if value == userToken{
-			delete(Player,key)
-		}
-	}
-	for key,value:=range Watcher{
-		if value == userToken{
-			delete(Watcher,key)
-		}
-	}
+	userName := userQuitParams.UserName
+	rc.Do("DELETE",userName+"_player")
+	rc.Do("DELETE",userName+"_watcher")
 	returnJson := &ReturnJson{}
 	returnJson.Error="OK"
 	returnJson.Msg="退出成功"
